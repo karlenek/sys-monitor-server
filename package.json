@@ -1,0 +1,22 @@
+{
+  "name": "sys-monitor-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src",
+    "dev": "nodemon ./src"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "convict": "^6.0.0",
+    "express": "^4.17.1",
+    "express-handlebars": "^5.1.0",
+    "winston": "^3.3.3",
+    "ws": "^7.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}

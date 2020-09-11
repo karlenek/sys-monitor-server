@@ -1,0 +1,192 @@
+<body>
+  <section class="content">
+    <div class="header">
+      <div>
+        <div
+          id="appStatusIconWarning"
+          class="status-icon warning"
+        >
+          <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M27.0833 27.0833H22.9167V14.5833H27.0833V27.0833ZM27.0833 35.4167H22.9167V31.25H27.0833V35.4167ZM25 4.16667C22.2641 4.16667 19.555 4.70554 17.0274 5.75252C14.4998 6.79949 12.2032 8.33406 10.2686 10.2686C6.3616 14.1756 4.16667 19.4747 4.16667 25C4.16667 30.5254 6.3616 35.8244 10.2686 39.7314C12.2032 41.666 14.4998 43.2005 17.0274 44.2475C19.555 45.2945 22.2641 45.8333 25 45.8333C30.5253 45.8333 35.8244 43.6384 39.7314 39.7314C43.6384 35.8244 45.8333 30.5254 45.8333 25C45.8333 22.2641 45.2945 19.5551 44.2475 17.0274C43.2005 14.4998 41.6659 12.2032 39.7314 10.2686C37.7968 8.33406 35.5002 6.79949 32.9726 5.75252C30.445 4.70554 27.7359 4.16667 25 4.16667V4.16667Z" fill="#EB5757"/>
+          </svg>
+        </div>
+        <div
+          id="appStatusIconNormal"
+          class="status-icon normal"
+        >
+          <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M25 4.16667C13.5417 4.16667 4.16666 13.5417 4.16666 25C4.16666 36.4583 13.5417 45.8333 25 45.8333C36.4583 45.8333 45.8333 36.4583 45.8333 25C45.8333 13.5417 36.4583 4.16667 25 4.16667ZM20.8333 35.4167L10.4167 25L13.3542 22.0625L20.8333 29.5208L36.6458 13.7083L39.5833 16.6667L20.8333 35.4167Z" fill="#219653"/>
+          </svg>
+        </div>
+      </div>
+      <div class="status">
+        <div id="appStatus" class="status-text">{{#if status.ok}}Operational{{else}}Warning{{/if}}</div>
+        <div id="appName" class="app-name">home.karl-ek.se</div>
+      </div>
+      <div>
+      </div>
+    </div>
+    <div class="services">
+      <div class="title">Services</div>
+      <div id="serviceList" class="services-list">
+      </div>
+    </div>
+  </section>
+ 
+</body>
+
+<script>
+  var socket = window.socket;
+  var initialStatus = JSON.parse('{{{ statusJson }}}');
+
+  function renderPage(status) {
+    // Render overall status
+    var appNameEl = document.getElementById('appName');
+    appNameEl.innerText = status.name;
+
+    var appStatusEl = document.getElementById('appStatus');
+    var appStatusIconNormalEl = document.getElementById('appStatusIconNormal');
+    var appStatusIconWarningEl = document.getElementById('appStatusIconWarning');
+
+    if (status.online) {
+      appStatusEl.innerText = 'Operational';
+      appStatusIconNormalEl.style.display = 'initial';
+      appStatusIconWarningEl.style.display = 'none';
+    } else {
+      appStatusEl.innerText = 'Unhealthy';
+      appStatusIconNormalEl.style.display = 'none';
+      appStatusIconWarningEl.style.display = 'initial';
+    }
+
+    if (!status.services) {
+      return;
+    }
+
+    var serviceListEl = document.getElementById('serviceList');
+    status.services.forEach(function (service, index) {
+      var serviceEl = document.getElementById('service_' + index);
+
+      if (!serviceEl) {
+        serviceEl = document.createElement('div');
+        serviceEl.classList.add('service');
+        serviceEl.id = 'service_' + index;
+
+        var serviceNameEl = document.createElement('div');
+        serviceNameEl.classList.add('service-name');
+
+        var serviceStatusIconEl = document.createElement('div');
+        serviceStatusIconEl.classList.add('status-icon');
+
+        serviceEl.appendChild(serviceNameEl);
+        serviceEl.appendChild(serviceStatusIconEl);
+      }
+
+      var serviceNameEl = serviceEl.getElementsByClassName('service-name')[0];
+      if (serviceNameEl) {
+        serviceNameEl.innerText = service.name;
+      }
+
+      var serviceStatusIconEl = serviceEl.getElementsByClassName('status-icon')[0];
+      if (serviceStatusIconEl) {
+        serviceStatusIconEl.title = service.status;
+        if (service.online) {
+          serviceStatusIconEl.innerHTML = '<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 3C9.75 3 3 9.75 3 18C3 26.25 9.75 33 18 33C26.25 33 33 26.25 33 18C33 9.75 26.25 3 18 3ZM15 25.5L7.5 18L9.615 15.885L15 21.255L26.385 9.87L28.5 12L15 25.5Z" fill="#219653"/></svg>';
+        } else {
+          serviceStatusIconEl.innerHTML = '<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 19.5H16.5V10.5H19.5V19.5ZM19.5 25.5H16.5V22.5H19.5V25.5ZM18 3C16.0302 3 14.0796 3.38799 12.2597 4.14181C10.4399 4.89563 8.78628 6.00052 7.3934 7.3934C4.58035 10.2064 3 14.0218 3 18C3 21.9782 4.58035 25.7936 7.3934 28.6066C8.78628 29.9995 10.4399 31.1044 12.2597 31.8582C14.0796 32.612 16.0302 33 18 33C21.9782 33 25.7936 31.4196 28.6066 28.6066C31.4196 25.7936 33 21.9782 33 18C33 16.0302 32.612 14.0796 31.8582 12.2597C31.1044 10.4399 29.9995 8.78628 28.6066 7.3934C27.2137 6.00052 25.5601 4.89563 23.7403 4.14181C21.9204 3.38799 19.9698 3 18 3V3Z" fill="#EB5757"/></svg>';
+        }
+      }
+
+      serviceListEl.appendChild(serviceEl);
+    });
+
+  }
+
+  renderPage(initialStatus);
+
+  socket.on('disconnect', function () {
+    console.log('Disconnected from server :/');
+  });
+  socket.on(Socket.CONNECT, function () {
+    console.log('Connected to server :)');
+  });
+  socket.on(Socket.AUTH_SUCCESS, function (event) {
+    socket.send(Socket.SUBSCRIBE);
+  });
+  socket.on(Socket.CHANGE, function (event) {
+    renderPage(event.payload);
+  });
+</script>
+
+<style>
+  body {
+    background-color: #42A0D6;
+  }
+
+  .content {
+    position: absolute;
+    top: 15%;
+    right: 0;
+    left: 0;
+    margin: auto;
+    width: 100%;
+    max-width: calc(800px - 6rem);
+
+    background-color: #FFFFFF;
+    padding: 5rem 3rem 2rem;
+
+    display: flex;
+    flex-direction: column;
+
+    border-radius: 10px;
+    box-shadow: 0px 0px 5px 5px rgba(0, 0, 0, 0.06);
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+  }
+
+  .header .status-text {
+    font-size: 2rem;
+    font-weight: 800;
+  }
+
+  .header .app-name {
+    font-size: 1.5rem;
+    font-weight: 100;
+  }
+
+  .header .status {
+    padding-left: 2rem;
+  }
+
+  .services {
+    flex: 1;
+    padding: 4rem 0 0 0;
+  }
+
+  .services .title {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .services .service {
+    width: calc(100% - 4rem);
+    min-height: calc(4.875rem - 2rem);
+    margin: 1.5rem 0;
+
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border-radius: 10px;
+    background-color: #EEEEEE;
+  }
+
+  .services .service-name {
+    font-size: 1.3rem;
+    font-weight: 500;
+  }
+</style>

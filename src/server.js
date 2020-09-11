@@ -9,6 +9,8 @@ const {
   appExist,
 } = require('./applications');
 
+const { port } = require('./config');
+
 const { WsServer } = require('./socket');
 const log = require('./logger');
 
@@ -75,6 +77,6 @@ app.get('/:appId', function (req, res) {
   });
 });
 
-module.exports = () => server.listen(3001, () => {
-  console.log('Server listening on port 3001')
+module.exports = () => server.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });

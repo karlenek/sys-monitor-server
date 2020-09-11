@@ -20,7 +20,12 @@ const config = convict({
   configPath: {
     format: 'String',
     default: './config.json',
-    env: 'SYSM_CONFIG_PATH',
+    env: 'SYSM_SERVER_CONFIG_PATH',
+  },
+  port: {
+    format: 'port',
+    default: 3001,
+    env: 'SYSM_SERVER_PORT',
   },
   applications: {
     format: 'strict-array',

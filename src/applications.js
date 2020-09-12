@@ -37,7 +37,7 @@ function checkSecret(appId, secret) {
     return false;
   }
 
-  return secrets[app.id] === secret;
+  return secrets[appId] === secret;
 }
 
 function appExist(appId) {

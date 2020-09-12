@@ -54,7 +54,9 @@ class Client extends EventEmitter {
         return this.send('auth_failed', { message: 'unknown appId'});
       }
 
-      if (checkSecret(msg.accessToken)) {
+      if (msg.accessToken && !checkSecret(msg.appId, msg.accessToken)) {
+        return this.send('auth_failed', { message: 'invalid credentials'});
+      } else if (msg.accessToken && checkSecret(msg.appId, msg.accessToken)) {
         this._canWrite = true;
       }
 
@@ -71,6 +73,10 @@ class Client extends EventEmitter {
     }
 
     if (msg.type === 'change') {
+      if (!this._canWrite) {
+        this.send('forbidden', { message: 'change event ignored, no permission to write'});
+        return;
+      }
       return this.emit('change', msg);
     }
 

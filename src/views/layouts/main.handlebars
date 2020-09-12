@@ -139,7 +139,10 @@
 
   window.socket = socket;
 
-  socket.connect('ws://localhost:3001');
+  var proto = (window.location.protocol.includes('https') && 'wss') || 'ws';
+  var socketUrl = proto + '://' + window.location.host;
+
+  socket.connect(socketUrl);
 </script>
 
 {{{body}}}

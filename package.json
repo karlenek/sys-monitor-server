@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./src",
-    "dev": "nodemon ./src"
+    "dev": "nodemon --ignore 'data' ./src"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +13,7 @@
     "convict": "^6.0.0",
     "express": "^4.17.1",
     "express-handlebars": "^5.1.0",
+    "nodemailer": "^6.4.11",
     "winston": "^3.3.3",
     "ws": "^7.3.1"
   },

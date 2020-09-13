@@ -27,6 +27,40 @@ const config = convict({
     default: 3001,
     env: 'SYSM_SERVER_PORT',
   },
+  mail: {
+    host: {
+      format: 'String',
+      default: 'mail.gandi.net',
+      env: 'SYSM_SERVER_MAIL_HOST',
+    },
+    port: {
+      format: 'port',
+      default: 465,
+      env: 'SYSM_SERVER_MAIL_PORT',
+    },
+    secure: {
+      format: 'Boolean',
+      default: true,
+      env: 'SYSM_SERVER_MAIL_SECURE',
+    },
+    sender: {
+      format: 'String',
+      default: '',
+      env: 'SYSM_SERVER_MAIL_SENDER',
+    },
+    auth: {
+      username: {
+        format: 'String',
+        default: '',
+        env: 'SYSM_SERVER_MAIL_USERNAME',
+      },
+      password: {
+        format: 'String',
+        default: '',
+        env: 'SYSM_SERVER_MAIL_PASSWORD',
+      },
+    },
+  },
   applications: {
     format: 'strict-array',
     default: [],
@@ -38,6 +72,14 @@ const config = convict({
       id: {
         format: 'String',
         default: '-',
+      },
+      updateInterval: {
+        format: 'Number',
+        default: 2000,
+      },
+      token: {
+        format: 'String',
+        default: undefined,
       },
       services: {
         format: 'strict-array',

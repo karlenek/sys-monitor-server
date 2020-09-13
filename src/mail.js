@@ -24,16 +24,25 @@ const transport = nodemailer.createTransport({
   }
 });
 
-// transport.sendMail({
-//   from: sender,
-//   to: 'karl@karl-ek.se',
-//   subject: 'Testing',
-//   text: 'A test message',
-// }, (err, info) => {
-//   if (err) {
-//     console.error(err);
-//     return;
-//   }
 
-//   console.log(info);
-// });
+async function sendMail({
+  receivers,
+  subject,
+  content,
+}) {
+  const to = receivers.join(', ');
+
+  const info = await transport.sendMail({
+    from: sender,
+    to,
+    subject,
+    text: content,
+  });
+
+  console.log(info);
+  return true;
+}
+
+module.exports = {
+  sendMail,
+};

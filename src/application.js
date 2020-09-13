@@ -2,6 +2,8 @@ const { EventEmitter } = require('events');
 const fs = require('fs');
 const log = require('./logger');
 
+const { sendMail } = require('./mail');
+
 const APPLICATION_STATE_CHANGED = 'applicationStateChanged';
 const DEFAULT_UPDATE_INTERVAL = 5000;
 
@@ -16,6 +18,7 @@ class Application extends EventEmitter {
     this._id = application.id;
     this._status = 'Unknown';
     this._services = application.services || [];
+    this._emailReceivers = application.email || [];
 
     this._token = application.token;
 
@@ -50,9 +53,11 @@ class Application extends EventEmitter {
       };
     });
 
+    // Make sure the application is alive and sending updates
     setInterval(() => {
       try {
-        if (this._updated + updateInterval < Date.now()) {
+        const someServiceIsOnline = this._services.some(s => s.online);
+        if (someServiceIsOnline && this._updated + updateInterval < Date.now()) {
           this.setOffline();
         }
       } catch (err) {
@@ -60,7 +65,49 @@ class Application extends EventEmitter {
       }
     }, 2000);
 
+    // Send email when state changes
+    this.on(APPLICATION_STATE_CHANGED, (...args) => this.onStateChanged(...args));
+
     this.persistState();
+  }
+
+  onStateChanged({ oldState, newState }) {
+    if (this._emailReceivers.length === 0) {
+      return;
+    }
+
+    if (!this._oldStateForEmail) {
+      this._oldStateForEmail = oldState;
+    }
+
+    clearTimeout(this._emailTimer);
+
+    this._emailTimer = setTimeout(async () => {
+      const oldStateString = JSON.stringify(this._oldStateForEmail);
+      const newStateString = JSON.stringify(newState);
+
+      try {
+        if (oldStateString !== newStateString) {
+          log.debug(`Sending email notification to: ${this._emailReceivers.join(',')}`);
+
+          const content = JSON.stringify({
+            newState,
+            oldState,
+          }, null, 4);
+
+          await sendMail({
+            subject: newState.online ? `${this.getId()} is online` : `${this.getId()} is offline`,
+            content,
+            receivers: [...this._emailReceivers],
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        log.error('Failed to send email');
+      }
+      this._oldStateForEmail = null;
+      this._emailTimer = undefined;
+    }, 5000);
   }
 
   persistState() {

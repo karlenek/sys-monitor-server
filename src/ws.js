@@ -6,13 +6,14 @@ const CLIENT_TYPE_APPLICATION = 'application';
 const CLIENT_TYPE_LISTENER = 'listener';
 
 class Client extends EventEmitter {
-  constructor(ws, { authorizeCallback }) {
+  constructor(ws, { authorizeCallback, ipAddress = null }) {
     super();
 
     this._isAuthorized = false;
     this._isListener = true;
     this._isApplication = false;
     this._appId = null;
+    this._ipAddress = ipAddress;
 
     this.authorizeCallback = authorizeCallback;
 
@@ -48,6 +49,10 @@ class Client extends EventEmitter {
 
   getAppId() {
     return this._appId;
+  }
+
+  getIpAddress() {
+    return this._ipAddress;
   }
 
   isApplication() {
@@ -120,13 +125,14 @@ class WsServer extends EventEmitter {
     this._clients = {};
     this.authorizeCallback = authorizeCallback;
 
-    this._wss.on('connection', (ws) => this._handleConnect(ws));
+    this._wss.on('connection', (ws, req) => this._handleConnect(ws, req));
     this._wss.on('close', (ws) => this._handleClose(ws));
   }
 
-  _handleConnect(ws) {
+  _handleConnect(ws, req) {
     const client = new Client(ws, {
       authorizeCallback: this.authorizeCallback,
+      ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
     });
 
     client.on('authorized', () => {
@@ -231,11 +237,13 @@ function createWss(apps, { server }) {
       return;
     }
 
-    application.setState(services);
+    application.setState({ services });
   });
 
   wsServer.on('connection', (client) => {
     const appId = client.getAppId();
+    const ip = client.getIpAddress();
+    const application = applications.get(appId);
 
     if (client.isApplication()) {
       if (!applicationSockets[appId]) {
@@ -244,6 +252,8 @@ function createWss(apps, { server }) {
 
       applicationSockets[appId].push(client);
     }
+   
+    application.setState({ ip });   
   });
 
   wsServer.on('close', (client) => {

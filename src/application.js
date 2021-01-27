@@ -16,6 +16,7 @@ class Application extends EventEmitter {
     this._application = {};
     this._name = application.name;
     this._id = application.id;
+    this._ipAddress = null;
     this._status = 'Unknown';
     this._services = application.services || [];
     this._emailReceivers = application.email || [];
@@ -140,27 +141,33 @@ class Application extends EventEmitter {
     );
   }
 
-  setState(services) {
+  setState({ services, ip }) {
     const oldState = this.getState(true);
 
-    services.forEach((service) => {
-      const index = this._services.findIndex(s => s.id === service.id);
+    if (typeof ip !== 'undefined') {
+      this._ipAddress = ip;
+    }
+    
+    if (services) {
+      services.forEach((service) => {
+        const index = this._services.findIndex(s => s.id === service.id);
   
-      if (index === -1) {
-        log.warn(`Trying to set status on service that has not been registred. Service: ${service.id}, App: ${appId}`);
-        return;
-      }
+        if (index === -1) {
+          log.warn(`Trying to set status on service that has not been registred. Service: ${service.id}, App: ${appId}`);
+          return;
+        }
 
-      const { id, status, online, ...rest } = service;
+        const { id, status, online, ...rest } = service;
   
-      this._services[index] = {
-        ...this._services[index],
-        id,
-        status,
-        online,
-        sensitive: rest,
-      };
-    });
+        this._services[index] = {
+          ...this._services[index],
+          id,
+          status,
+          online,
+          sensitive: rest,
+        };
+      });
+    }
 
     this._online = this._services.every(s => s.online);
 
@@ -181,6 +188,7 @@ class Application extends EventEmitter {
   getState(includeSensitive = false) {
     return JSON.parse(JSON.stringify({
       id: this._id,
+      ip: this._ipAddress,
       name: this._name,
       online: this._online,
       services: this._services.map((service) => ({
@@ -192,6 +200,8 @@ class Application extends EventEmitter {
 
   setOffline() {
     let { services } = this.getState();
+
+    this._ipAddress = null;
 
     services = services.map((service) => {
       if (!service.online) {
